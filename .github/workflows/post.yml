@@ -1,0 +1,54 @@
+name: Post to X
+
+on:
+  schedule:
+    # Times are UTC: 03:30, 09:30, 14:30 = 9:00, 15:00, 20:00 IST.
+    # GitHub may start scheduled runs a few minutes late.
+    - cron: "30 3 * * *"
+    - cron: "30 9 * * *"
+    - cron: "30 14 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Generate only, don't post"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: post-to-x
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Generate and post
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
+        run: python bot.py
+
+      - name: Save post history
+        run: |
+          if [ -n "$(git status --porcelain history.json)" ]; then
+            git config user.name "x-niche-bot"
+            git config user.email "x-niche-bot@users.noreply.github.com"
+            git add history.json
+            git commit -m "Update post history"
+            git push
+          fi

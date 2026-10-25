@@ -1,0 +1,27 @@
+{
+  "niche": "AI & tech: practical AI tools, prompts, coding with AI, and tech productivity",
+  "audience": "Developers, creators, and builders who want to use AI to get more done",
+  "voice": "Clear, practical, slightly punchy. Sounds like a builder sharing what works, not a marketer.",
+  "topics": [
+    "a lesser-known AI tool and what it is good for",
+    "a prompt-writing tip with a short example",
+    "coding faster with AI assistants",
+    "automating a boring task with AI",
+    "a common mistake people make with ChatGPT/Claude/Gemini",
+    "free AI tools that replace paid ones",
+    "AI agents and what they can realistically do today",
+    "a productivity workflow for developers",
+    "open-source AI models you can run locally",
+    "a hot take on where AI and tech are heading",
+    "beginner-friendly explanation of an AI concept (RAG, tokens, fine-tuning, embeddings)",
+    "a tip for building side projects quickly with AI"
+  ],
+  "formats": [
+    "a single useful tip",
+    "a short numbered list (3 items)",
+    "a contrarian opinion with one reason",
+    "a question to spark replies",
+    "before vs after (old way vs AI way)",
+    "a mini how-to in 3 steps"
+  ]
+}
