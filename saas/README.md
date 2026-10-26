@@ -23,6 +23,7 @@ Product: **autopilot for your X niche.** Set your niche once; it writes and post
 ## This week (your to-do)
 1. ✅ Landing page live: https://kuldeepmahto07.github.io/x-studio-landing/ (GitHub Pages, public repo `x-studio-landing`).
    Edit `landing/index.html` here, commit, then redeploy with: `git subtree push --prefix saas/landing landing main`
-2. Waitlist: create a Google Form (Email, Niche), then fill `GOOGLE_FORM` in `landing/index.html` and redeploy. Responses → the form's linked Google Sheet.
+2. ✅ Waitlist connected to the Google Form (name, email, how they heard). Responses land in the linked Google Sheet.
+   To collect niche too: add a short-answer "Niche" question, put its entry ID in `GOOGLE_FORM.entries.niche`, redeploy.
 3. Turn on your own bot so your account becomes the live case study.
 4. Send 20 interview DMs using the script in [02-validation.md](02-validation.md).

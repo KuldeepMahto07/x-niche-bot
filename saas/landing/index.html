@@ -18,7 +18,8 @@
   .lead { color:var(--muted); font-size:20px; max-width:620px; margin:0 auto 32px; }
   form.wait { display:flex; gap:8px; max-width:520px; margin:0 auto; flex-wrap:wrap; }
   form.wait input { flex:1 1 200px; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:14px 16px; border-radius:10px; font:inherit; }
-  form.wait input:focus { outline:none; border-color:var(--accent); }
+  form.wait select { flex:1 1 200px; background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:14px 16px; border-radius:10px; font:inherit; }
+  form.wait input:focus, form.wait select:focus { outline:none; border-color:var(--accent); }
   .btn { background:var(--accent); color:var(--ink); border:0; padding:14px 22px; border-radius:10px; font:inherit; font-weight:700; cursor:pointer; }
   .small { color:var(--muted); font-size:14px; margin-top:12px; }
   section { padding: 56px 0; border-top:1px solid var(--line); }
@@ -47,8 +48,14 @@
     <h1>Post every day on X<br>without writing every day.</h1>
     <p class="lead">Tell X Studio your niche once. It writes and posts 3 times a day in your voice. Review the queue whenever you want, or don't.</p>
     <form class="wait" id="join">
-      <input type="email" name="email" placeholder="you@email.com" required>
+      <input type="text" name="name" placeholder="Your name" autocomplete="name">
+      <input type="email" name="email" placeholder="you@email.com" autocomplete="email" required>
       <input type="text" name="niche" placeholder="Your niche (e.g. AI tools)">
+      <select name="source">
+        <option value="">How did you hear about us?</option>
+        <option>Social Media</option><option>Search Engine</option><option>Friend or Colleague</option>
+        <option>Blog or Article</option><option>Podcast</option><option>Other</option>
+      </select>
       <button class="btn" type="submit">Join the waitlist</button>
     </form>
     <p class="small">Free to join. Founding members get $5/month for life.</p>
@@ -89,19 +96,30 @@
 <footer>© 2026 X Studio · Not affiliated with X Corp.</footer>
 <script>
   // Waitlist signups go to a Google Form (responses land in its linked Google Sheet).
+  // Field IDs come from the form's viewform page. Leave a field's entry empty to hide that input.
   const GOOGLE_FORM = {
-    formId: "",       // from https://docs.google.com/forms/d/e/<formId>/viewform
-    emailEntry: "",   // e.g. "entry.123456789"
-    nicheEntry: "",   // e.g. "entry.987654321"
+    formId: "1FAIpQLSeNNyeIw-2e65gKeP2gSEFIfhnVzzMf3UTwfs28NkZQredpNA",
+    entries: {
+      name: "entry.1947935768",    // Full Name
+      email: "entry.2131169028",   // Email Address
+      source: "entry.1420823742",  // How did you hear about us?
+      niche: "",                   // add a "Niche" short-answer question to the form, then put its entry ID here
+    },
   };
 
-  document.getElementById("join").addEventListener("submit", async (e) => {
+  const joinForm = document.getElementById("join");
+  for (const [field, entry] of Object.entries(GOOGLE_FORM.entries)) {
+    if (!entry) joinForm.elements[field].remove();
+  }
+
+  joinForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = e.target;
-    if (!GOOGLE_FORM.formId) { alert("Waitlist isn't connected yet."); return; }
     const body = new URLSearchParams();
-    body.append(GOOGLE_FORM.emailEntry, f.email.value.trim());
-    body.append(GOOGLE_FORM.nicheEntry, f.niche.value.trim());
+    for (const [field, entry] of Object.entries(GOOGLE_FORM.entries)) {
+      const value = entry && f.elements[field] ? f.elements[field].value.trim() : "";
+      if (value) body.append(entry, value);
+    }
     // Google Forms doesn't send CORS headers, so the response is opaque; a network error is the only failure we can see.
     try {
       await fetch(`https://docs.google.com/forms/d/e/${GOOGLE_FORM.formId}/formResponse`, { method: "POST", mode: "no-cors", body });
