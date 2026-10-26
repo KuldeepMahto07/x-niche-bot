@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X Studio: autopilot for your X niche</title>
+<meta name="description" content="Tell it your niche once. X Studio writes and posts 3 times a day in your voice. Review the queue whenever you want.">
+<style>
+  :root { --bg:#0b0d10; --panel:#13161b; --line:#252a33; --text:#e7e9ee; --muted:#8b93a3; --accent:#4c9aff; --ink:#06121f; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+  nav { display:flex; align-items:center; justify-content:space-between; padding:22px 0; }
+  .brand { font-weight:800; font-size:19px; } .brand span { color:var(--accent); }
+  .hero { padding: 64px 0 48px; text-align:center; }
+  .pill { display:inline-block; font-size:13px; color:var(--accent); border:1px solid rgba(76,154,255,.4); padding:4px 12px; border-radius:20px; margin-bottom:20px; }
+  h1 { font-size: clamp(36px, 6vw, 60px); line-height:1.05; letter-spacing:-.03em; margin:0 0 18px; }
+  .lead { color:var(--muted); font-size:20px; max-width:620px; margin:0 auto 32px; }
+  form.wait { display:flex; gap:8px; max-width:520px; margin:0 auto; flex-wrap:wrap; }
+  form.wait input { flex:1 1 200px; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:14px 16px; border-radius:10px; font:inherit; }
+  form.wait input:focus { outline:none; border-color:var(--accent); }
+  .btn { background:var(--accent); color:var(--ink); border:0; padding:14px 22px; border-radius:10px; font:inherit; font-weight:700; cursor:pointer; }
+  .small { color:var(--muted); font-size:14px; margin-top:12px; }
+  section { padding: 56px 0; border-top:1px solid var(--line); }
+  h2 { font-size:30px; letter-spacing:-.02em; margin:0 0 28px; text-align:center; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap:16px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:22px; }
+  .card h3 { margin:0 0 6px; font-size:18px; } .card p { margin:0; color:var(--muted); font-size:15px; }
+  .num { color:var(--accent); font-weight:800; font-size:14px; margin-bottom:8px; }
+  .tweet { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px 20px; max-width:560px; margin:0 auto 12px; white-space:pre-wrap; font-size:16px; }
+  .tweet small { display:block; color:var(--muted); margin-bottom:6px; font-size:13px; }
+  .price { text-align:center; } .price .amt { font-size:42px; font-weight:800; letter-spacing:-.02em; } .price .amt span { font-size:16px; color:var(--muted); font-weight:400; }
+  .price ul { list-style:none; padding:0; margin:16px 0 0; color:var(--muted); font-size:15px; text-align:left; } .price li { padding:4px 0; } .price li::before { content:"✓  "; color:var(--accent); }
+  .card.hl { border-color: var(--accent); }
+  details { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-bottom:10px; }
+  summary { cursor:pointer; font-weight:600; } details p { color:var(--muted); margin:10px 0 0; }
+  footer { padding:40px 0; color:var(--muted); font-size:14px; text-align:center; border-top:1px solid var(--line); }
+  .thanks { display:none; color:var(--accent); font-weight:600; margin-top:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><div class="brand">X <span>Studio</span></div><a class="small" href="#join" style="color:var(--text)">Join waitlist →</a></nav>
+
+  <div class="hero">
+    <div class="pill">Left Hypefury? Founding spots open</div>
+    <h1>Post every day on X<br>without writing every day.</h1>
+    <p class="lead">Tell X Studio your niche once. It writes and posts 3 times a day in your voice. Review the queue whenever you want, or don't.</p>
+    <form class="wait" id="join" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+      <input type="email" name="email" placeholder="you@email.com" required>
+      <input type="text" name="niche" placeholder="Your niche (e.g. AI tools)">
+      <button class="btn" type="submit">Join the waitlist</button>
+    </form>
+    <p class="small">Free to join. Founding members get $5/month for life.</p>
+    <p class="thanks" id="thanks">You're in! Check your inbox.</p>
+  </div>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="grid">
+      <div class="card"><div class="num">01</div><h3>Set your niche</h3><p>Topics, audience, voice. Takes two minutes.</p></div>
+      <div class="card"><div class="num">02</div><h3>Approve or skip</h3><p>Drafts land in a queue. Edit, reorder, or let it run.</p></div>
+      <div class="card"><div class="num">03</div><h3>It posts on autopilot</h3><p>3 posts a day at your best times, even when you're busy.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Real posts it wrote</h2>
+    <div class="tweet"><small>AI &amp; tech niche · single tip</small>Stop asking AI to "write code". Give it the file, the error, and the exact behavior you want. 3 lines of context beat 30 lines of vibes.</div>
+    <div class="tweet"><small>AI &amp; tech niche · contrarian take</small>Hot take: most "AI agents" are a for-loop with a prompt. That's fine. Ship the loop, then earn the word "agent".</div>
+  </section>
+
+  <section>
+    <h2>Simple pricing</h2>
+    <div class="grid">
+      <div class="card price"><h3>Free</h3><div class="amt">$0</div><ul><li>AI drafts in your niche</li><li>10 posts / month</li><li>1 X account</li></ul></div>
+      <div class="card price hl"><h3>Pro</h3><div class="amt">$9<span>/mo</span></div><ul><li>Autopilot, 3 posts / day</li><li>Approval queue</li><li>Voice matching</li><li>1 X account</li></ul></div>
+      <div class="card price"><h3>Creator</h3><div class="amt">$19<span>/mo</span></div><ul><li>Up to 10 posts / day</li><li>3 X accounts</li><li>Analytics</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Questions</h2>
+    <details><summary>Will it sound like a bot?</summary><p>You set the voice and topics, and it learns from your past posts. Every post sits in a queue you can edit before it goes out.</p></details>
+    <details><summary>Is it safe for my account?</summary><p>It uses X's official API, posts original content at a normal human pace, and never follows, likes, or DMs on your behalf.</p></details>
+    <details><summary>How is this different from Typefully or Tweet Hunter?</summary><p>Those help you write and schedule. X Studio writes and posts for you, so you can stay consistent without spending time every day.</p></details>
+  </section>
+</div>
+<footer>© 2026 X Studio · Not affiliated with X Corp.</footer>
+<script>
+  // Submit to Formspree without leaving the page; falls back to normal POST if fetch fails.
+  document.getElementById("join").addEventListener("submit", async (e) => {
+    const f = e.target;
+    e.preventDefault();
+    if (f.action.includes("YOUR_FORM_ID")) { alert("Waitlist form not connected yet: set the Formspree URL in the form action."); return; }
+    try {
+      const r = await fetch(f.action, { method: "POST", body: new FormData(f), headers: { Accept: "application/json" } });
+      if (!r.ok) throw new Error();
+      f.style.display = "none"; document.getElementById("thanks").style.display = "block";
+    } catch { f.submit(); }
+  });
+</script>
+</body>
+</html>

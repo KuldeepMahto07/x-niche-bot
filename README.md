@@ -9,8 +9,8 @@ Gemini writes each post from your niche settings in `config.json`; GitHub Action
 1. Go to https://aistudio.google.com/apikey and sign in.
 2. Click **Create API key** and copy it.
 
-### 2. Get X API keys (free tier)
-1. Go to https://developer.x.com and sign up for the **Free** tier with the X account that should post.
+### 2. Get X API keys (pay-per-use, about $1.35/month)
+1. Go to https://developer.x.com with the X account that should post, create an app, and add a few dollars of credit (Console → Billing). Since Feb 2026 X charges per request: about $0.015 per post, $0.20 if the post has a link. Set a monthly spending limit.
 2. Open your app in the Developer Portal → **User authentication settings** → **Set up**:
    - App permissions: **Read and write**
    - Type of App: **Web App, Automated App or Bot**
@@ -60,4 +60,4 @@ DRY_RUN=1 python bot.py
 ## Notes
 - `history.json` stores the last 60 posts so Gemini avoids repeating itself; the workflow commits it back.
 - GitHub pauses scheduled workflows after 60 days with no repo activity; the history commits keep it active.
-- 3 posts/day ≈ 90/month, within X's free-tier posting limit (check current limits at developer.x.com).
+- 3 posts/day ≈ 90 posts/month ≈ $1.35/month in X API credits (more if posts contain links). Check current rates at developer.x.com.
