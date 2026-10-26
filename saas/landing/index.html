@@ -46,13 +46,13 @@
     <div class="pill">Left Hypefury? Founding spots open</div>
     <h1>Post every day on X<br>without writing every day.</h1>
     <p class="lead">Tell X Studio your niche once. It writes and posts 3 times a day in your voice. Review the queue whenever you want, or don't.</p>
-    <form class="wait" id="join" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+    <form class="wait" id="join">
       <input type="email" name="email" placeholder="you@email.com" required>
       <input type="text" name="niche" placeholder="Your niche (e.g. AI tools)">
       <button class="btn" type="submit">Join the waitlist</button>
     </form>
     <p class="small">Free to join. Founding members get $5/month for life.</p>
-    <p class="thanks" id="thanks">You're in! Check your inbox.</p>
+    <p class="thanks" id="thanks">You're on the list! We'll email you when your spot opens.</p>
   </div>
 
   <section>
@@ -88,16 +88,25 @@
 </div>
 <footer>© 2026 X Studio · Not affiliated with X Corp.</footer>
 <script>
-  // Submit to Formspree without leaving the page; falls back to normal POST if fetch fails.
+  // Waitlist signups go to a Google Form (responses land in its linked Google Sheet).
+  const GOOGLE_FORM = {
+    formId: "",       // from https://docs.google.com/forms/d/e/<formId>/viewform
+    emailEntry: "",   // e.g. "entry.123456789"
+    nicheEntry: "",   // e.g. "entry.987654321"
+  };
+
   document.getElementById("join").addEventListener("submit", async (e) => {
-    const f = e.target;
     e.preventDefault();
-    if (f.action.includes("YOUR_FORM_ID")) { alert("Waitlist form not connected yet: set the Formspree URL in the form action."); return; }
+    const f = e.target;
+    if (!GOOGLE_FORM.formId) { alert("Waitlist isn't connected yet."); return; }
+    const body = new URLSearchParams();
+    body.append(GOOGLE_FORM.emailEntry, f.email.value.trim());
+    body.append(GOOGLE_FORM.nicheEntry, f.niche.value.trim());
+    // Google Forms doesn't send CORS headers, so the response is opaque; a network error is the only failure we can see.
     try {
-      const r = await fetch(f.action, { method: "POST", body: new FormData(f), headers: { Accept: "application/json" } });
-      if (!r.ok) throw new Error();
+      await fetch(`https://docs.google.com/forms/d/e/${GOOGLE_FORM.formId}/formResponse`, { method: "POST", mode: "no-cors", body });
       f.style.display = "none"; document.getElementById("thanks").style.display = "block";
-    } catch { f.submit(); }
+    } catch { alert("Couldn't sign you up. Check your connection and try again."); }
   });
 </script>
 </body>
