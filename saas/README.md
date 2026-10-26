@@ -21,7 +21,8 @@ Product: **autopilot for your X niche.** Set your niche once; it writes and post
 - Validation go-gate: 100 waitlist · ≥10% signup rate · 6/10 interviews feel the pain · 5 pre-sales
 
 ## This week (your to-do)
-1. Create a free Formspree form → paste its URL into `landing/index.html` (`YOUR_FORM_ID`).
-2. Deploy `landing/` free on Cloudflare Pages or Netlify (drag and drop the folder).
+1. ✅ Landing page live: https://kuldeepmahto07.github.io/x-studio-landing/ (GitHub Pages, public repo `x-studio-landing`).
+   Edit `landing/index.html` here, commit, then redeploy with: `git subtree push --prefix saas/landing landing main`
+2. Waitlist: create a Google Form (Email, Niche), then fill `GOOGLE_FORM` in `landing/index.html` and redeploy. Responses → the form's linked Google Sheet.
 3. Turn on your own bot so your account becomes the live case study.
 4. Send 20 interview DMs using the script in [02-validation.md](02-validation.md).
