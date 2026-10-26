@@ -59,7 +59,7 @@
       <button class="btn" type="submit">Join the waitlist</button>
     </form>
     <p class="small">Free to join. Founding members get $5/month for life.</p>
-    <p class="thanks" id="thanks">You're on the list! We'll email you when your spot opens.</p>
+    <p class="thanks" id="thanks">Almost there: click <b>Submit</b> on the form that just opened to save your spot.</p>
   </div>
 
   <section>
@@ -112,19 +112,18 @@
     if (!entry) joinForm.elements[field].remove();
   }
 
-  joinForm.addEventListener("submit", async (e) => {
+  // Opens the Google Form with the visitor's answers prefilled; they click Submit there.
+  // Works whatever the form's sign-in settings are, so no signup is silently lost.
+  joinForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const f = e.target;
-    const body = new URLSearchParams();
+    const params = new URLSearchParams({ usp: "pp_url" });
     for (const [field, entry] of Object.entries(GOOGLE_FORM.entries)) {
       const value = entry && f.elements[field] ? f.elements[field].value.trim() : "";
-      if (value) body.append(entry, value);
+      if (value) params.append(entry, value);
     }
-    // Google Forms doesn't send CORS headers, so the response is opaque; a network error is the only failure we can see.
-    try {
-      await fetch(`https://docs.google.com/forms/d/e/${GOOGLE_FORM.formId}/formResponse`, { method: "POST", mode: "no-cors", body });
-      f.style.display = "none"; document.getElementById("thanks").style.display = "block";
-    } catch { alert("Couldn't sign you up. Check your connection and try again."); }
+    window.open(`https://docs.google.com/forms/d/e/${GOOGLE_FORM.formId}/viewform?${params}`, "_blank", "noopener");
+    f.style.display = "none"; document.getElementById("thanks").style.display = "block";
   });
 </script>
 </body>
