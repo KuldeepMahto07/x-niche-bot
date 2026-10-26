@@ -36,6 +36,15 @@ Gemini writes each post from your niche settings in `config.json`; GitHub Action
 **Actions → Post to X → Run workflow**. "Generate only" is ticked by default: the log shows the post without publishing.
 Untick it and run again to publish one real post. After that it runs on the schedule by itself.
 
+## X Studio (dashboard)
+A local control panel for the bot. Double-click `start-studio.bat` (or run `python studio.py`), then open http://127.0.0.1:5050.
+
+- **Drafts:** Gemini writes posts in your niche; edit them and add the good ones to the queue. Needs `GEMINI_API_KEY` in a local `.env`.
+- **Queue:** the bot posts these in order before writing its own. Reorder, edit, or remove.
+- **History:** what the bot has posted ("Refresh from GitHub" pulls the latest).
+- **Settings:** niche, audience, voice, topics, formats.
+- **Publish to bot:** commits and pushes your queue and settings so the next scheduled run uses them.
+
 ## Customize
 - **Niche, voice, topics, formats:** edit `config.json`.
 - **Times:** edit the `cron` lines in `.github/workflows/post.yml` (UTC).

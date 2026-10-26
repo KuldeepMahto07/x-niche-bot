@@ -1,4 +1,5 @@
-"""Generate a niche post with Gemini and publish it to X.
+"""Publish the next post to X: the first approved post in queue.json,
+or, if the queue is empty, a fresh post written by Gemini.
 
 Env vars (set as GitHub Actions secrets, or in a local .env):
   GEMINI_API_KEY, X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET
@@ -14,10 +15,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-CONFIG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+CONFIG_FILE = ROOT / "config.json"
 HISTORY_FILE = ROOT / "history.json"
+QUEUE_FILE = ROOT / "queue.json"
 MAX_LEN = 280
 HISTORY_KEEP = 60
+
+
+def now_iso():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def load_dotenv():
@@ -31,32 +37,44 @@ def load_dotenv():
             os.environ.setdefault(key.strip(), value.strip().strip('"'))
 
 
+def read_json(path, default):
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return default
+
+
+def write_json(path, data):
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def load_config():
+    return read_json(CONFIG_FILE, {})
+
+
 def load_history():
-    if HISTORY_FILE.exists():
-        return json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
-    return []
+    return read_json(HISTORY_FILE, [])
+
+
+def load_queue():
+    return read_json(QUEUE_FILE, [])
+
+
+def save_queue(queue):
+    write_json(QUEUE_FILE, queue)
 
 
 def save_history(history, text, topic, fmt):
-    history.append({
-        "time": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "topic": topic,
-        "format": fmt,
-        "text": text,
-    })
-    HISTORY_FILE.write_text(
-        json.dumps(history[-HISTORY_KEEP:], indent=2, ensure_ascii=False),
-        encoding="utf-8",
-    )
+    history.append({"time": now_iso(), "topic": topic, "format": fmt, "text": text})
+    write_json(HISTORY_FILE, history[-HISTORY_KEEP:])
 
 
-def build_prompt(topic, fmt, recent):
+def build_prompt(config, topic, fmt, recent):
     recent_block = "\n".join(f"- {p}" for p in recent) or "- (none yet)"
     return f"""You write posts for an X (Twitter) account.
 
-Niche: {CONFIG['niche']}
-Audience: {CONFIG['audience']}
-Voice: {CONFIG['voice']}
+Niche: {config['niche']}
+Audience: {config['audience']}
+Voice: {config['voice']}
 
 Write ONE post.
 Topic: {topic}
@@ -73,19 +91,19 @@ Rules:
 Reply with the post text only, no quotes, no preamble."""
 
 
-def generate(topic, fmt, recent):
+def generate(config, topic, fmt, recent):
     from google import genai
 
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
-    prompt = build_prompt(topic, fmt, recent)
+    prompt = build_prompt(config, topic, fmt, recent)
     for _ in range(3):
         text = client.models.generate_content(model=model, contents=prompt).text
         text = (text or "").strip().strip('"').strip()
         if 0 < len(text) <= MAX_LEN:
             return text
         prompt += f"\n\nYour last answer was {len(text)} characters. Make it shorter."
-    sys.exit(f"Could not get a post under {MAX_LEN} characters.")
+    raise RuntimeError(f"Could not get a post under {MAX_LEN} characters.")
 
 
 def publish(text):
@@ -103,12 +121,22 @@ def publish(text):
 
 def main():
     load_dotenv()
+    config = load_config()
     history = load_history()
-    recent = [h["text"] for h in history[-15:]]
-    topic = random.choice(CONFIG["topics"])
-    fmt = random.choice(CONFIG["formats"])
+    queue = load_queue()
 
-    text = generate(topic, fmt, recent)
+    if queue:
+        item = queue[0]
+        text, topic, fmt = item["text"], item.get("topic", "queued"), item.get("format", "queued")
+        print(f"From queue ({len(queue)} waiting)")
+    else:
+        recent = [h["text"] for h in history[-15:]]
+        topic = random.choice(config["topics"])
+        fmt = random.choice(config["formats"])
+        try:
+            text = generate(config, topic, fmt, recent)
+        except RuntimeError as e:
+            sys.exit(str(e))
     print(f"Topic: {topic}\nFormat: {fmt}\n---\n{text}\n--- ({len(text)} chars)")
 
     if os.environ.get("DRY_RUN") == "1":
@@ -118,6 +146,8 @@ def main():
     tweet_id = publish(text)
     print(f"Posted: https://x.com/i/status/{tweet_id}")
     save_history(history, text, topic, fmt)
+    if queue:
+        save_queue(queue[1:])
 
 
 if __name__ == "__main__":

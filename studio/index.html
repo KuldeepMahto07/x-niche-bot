@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X Studio</title>
+<style>
+  :root {
+    --bg: #0b0d10; --panel: #13161b; --panel-2: #1a1e25; --line: #252a33;
+    --text: #e7e9ee; --muted: #8b93a3; --accent: #4c9aff; --accent-ink: #06121f;
+    --ok: #3ecf8e; --warn: #f5a524; --bad: #ff5c6c; --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px;
+    padding: 14px 28px; background: rgba(11,13,16,.9); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .brand { font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
+  .brand span { color: var(--accent); }
+  nav { display: flex; gap: 4px; margin-left: 12px; }
+  nav button { background: none; border: 0; color: var(--muted); padding: 7px 14px; border-radius: 8px; cursor: pointer; font: inherit; }
+  nav button:hover { color: var(--text); background: var(--panel); }
+  nav button.active { color: var(--text); background: var(--panel-2); }
+  nav .count { display: inline-block; min-width: 20px; margin-left: 6px; padding: 0 6px; border-radius: 10px;
+    background: var(--line); font-size: 12px; text-align: center; }
+  .spacer { flex: 1; }
+  .status { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+  .dot.pending { background: var(--warn); }
+  main { max-width: 860px; margin: 0 auto; padding: 28px; }
+  h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -.01em; }
+  .sub { color: var(--muted); margin: 0 0 22px; }
+  .btn { border: 1px solid var(--line); background: var(--panel-2); color: var(--text); padding: 8px 14px;
+    border-radius: 9px; cursor: pointer; font: inherit; font-size: 14px; white-space: nowrap; }
+  .btn:hover { border-color: #3a4150; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.ghost { background: none; }
+  .btn.danger:hover { color: var(--bad); border-color: var(--bad); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+  .card .meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: var(--panel-2); border: 1px solid var(--line); padding: 1px 8px; border-radius: 6px; }
+  textarea, input, select { width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 9px; padding: 10px 12px; font: inherit; resize: vertical; }
+  textarea:focus, input:focus, select:focus { outline: none; border-color: var(--accent); }
+  select { width: auto; }
+  .post-text { min-height: 92px; }
+  .card-foot { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .chars { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .chars.over { color: var(--bad); font-weight: 600; }
+  .empty { text-align: center; color: var(--muted); padding: 48px 16px; border: 1px dashed var(--line); border-radius: var(--radius); }
+  .pos { font-weight: 700; color: var(--accent); font-size: 13px; }
+  label.field { display: block; margin-bottom: 16px; }
+  label.field b { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  label.field small { color: var(--muted); font-weight: 400; }
+  .notice { background: rgba(245,165,36,.08); border: 1px solid rgba(245,165,36,.35); color: #f7c46c;
+    padding: 12px 14px; border-radius: 10px; margin-bottom: 18px; font-size: 14px; }
+  .history-text { white-space: pre-wrap; }
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--panel-2); border: 1px solid var(--line); padding: 10px 16px; border-radius: 10px;
+    transition: .2s; pointer-events: none; max-width: 90vw; white-space: pre-wrap; z-index: 10; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.err { border-color: var(--bad); color: #ffb3bb; }
+  .hidden { display: none !important; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent;
+    border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">X <span>Studio</span></div>
+  <nav id="tabs">
+    <button data-tab="drafts" class="active">Drafts</button>
+    <button data-tab="queue">Queue <span class="count" id="queue-count">0</span></button>
+    <button data-tab="history">History</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+  <div class="spacer"></div>
+  <div class="status"><span class="dot" id="sync-dot"></span><span id="sync-text">Up to date</span></div>
+  <button class="btn primary" id="publish-btn">Publish to bot</button>
+</header>
+
+<main>
+  <!-- Drafts -->
+  <section id="tab-drafts">
+    <h1>Drafts</h1>
+    <p class="sub">Gemini writes posts in your niche. Edit them, then add the good ones to the queue.</p>
+    <div class="notice hidden" id="no-key">No Gemini key found. Add <code>GEMINI_API_KEY=...</code> to the <code>.env</code> file in the bot folder and restart the Studio. You can still write posts yourself below.</div>
+    <div class="row" style="margin-bottom:18px">
+      <select id="draft-count">
+        <option value="1">1 draft</option><option value="3" selected>3 drafts</option><option value="5">5 drafts</option>
+      </select>
+      <button class="btn primary" id="generate-btn">Generate drafts</button>
+    </div>
+    <div id="drafts-list"></div>
+    <div class="card">
+      <div class="meta"><span class="tag">Write your own</span></div>
+      <textarea class="post-text" id="manual-text" placeholder="Type a post…"></textarea>
+      <div class="card-foot">
+        <span class="chars" id="manual-chars">0 / 280</span><div class="spacer"></div>
+        <button class="btn" id="manual-add">Add to queue</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Queue -->
+  <section id="tab-queue" class="hidden">
+    <h1>Queue</h1>
+    <p class="sub">The bot posts these in order, one per scheduled run. When the queue is empty it writes its own post. Changes reach the bot after you click <b>Publish to bot</b>.</p>
+    <div id="queue-list"></div>
+  </section>
+
+  <!-- History -->
+  <section id="tab-history" class="hidden">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><h1>History</h1><p class="sub">Posts the bot has published (latest 60).</p></div>
+      <button class="btn" id="refresh-btn">Refresh from GitHub</button>
+    </div>
+    <div id="history-list"></div>
+  </section>
+
+  <!-- Settings -->
+  <section id="tab-settings" class="hidden">
+    <h1>Niche settings</h1>
+    <p class="sub">This is what Gemini follows when it writes posts.</p>
+    <label class="field"><b>Niche</b><input id="cfg-niche"></label>
+    <label class="field"><b>Audience</b><input id="cfg-audience"></label>
+    <label class="field"><b>Voice</b><textarea id="cfg-voice" rows="2"></textarea></label>
+    <label class="field"><b>Topics <small>(one per line; the bot picks one at random)</small></b><textarea id="cfg-topics" rows="9"></textarea></label>
+    <label class="field"><b>Post formats <small>(one per line)</small></b><textarea id="cfg-formats" rows="6"></textarea></label>
+    <button class="btn primary" id="save-settings">Save settings</button>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let S = { config: {}, queue: [], history: [], drafts: [], max_len: 280 };
+
+async function api(path, body) {
+  const res = await fetch(path, body === undefined ? {} : {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({ error: `Server error (${res.status})` }));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+let toastTimer;
+function toast(msg, isErr = false) {
+  const t = $("toast");
+  t.textContent = msg; t.classList.toggle("err", isErr); t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), isErr ? 6000 : 2500);
+}
+
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function charLabel(el, text) { el.textContent = `${text.length} / ${S.max_len}`; el.classList.toggle("over", text.length > S.max_len); }
+function fmtTime(iso) { return iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : ""; }
+
+function setUnpublished(flag) {
+  $("sync-dot").classList.toggle("pending", flag);
+  $("sync-text").textContent = flag ? "Unpublished changes" : "Up to date";
+}
+
+// ---------- tabs ----------
+$("tabs").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-tab]"); if (!b) return;
+  document.querySelectorAll("#tabs button").forEach((x) => x.classList.toggle("active", x === b));
+  document.querySelectorAll("main > section").forEach((s) => s.classList.toggle("hidden", s.id !== `tab-${b.dataset.tab}`));
+});
+
+// ---------- drafts ----------
+function renderDrafts() {
+  $("drafts-list").innerHTML = S.drafts.map((d, i) => `
+    <div class="card" data-i="${i}">
+      <div class="meta"><span class="tag">${esc(d.topic)}</span><span class="tag">${esc(d.format)}</span></div>
+      <textarea class="post-text">${esc(d.text)}</textarea>
+      <div class="card-foot">
+        <span class="chars"></span><div class="spacer"></div>
+        <button class="btn ghost danger" data-act="discard">Discard</button>
+        <button class="btn" data-act="add">Add to queue</button>
+      </div>
+    </div>`).join("");
+  $("drafts-list").querySelectorAll(".card").forEach((card) => {
+    const ta = card.querySelector("textarea"), ch = card.querySelector(".chars");
+    charLabel(ch, ta.value);
+    ta.addEventListener("input", () => { S.drafts[card.dataset.i].text = ta.value; charLabel(ch, ta.value); });
+  });
+}
+
+$("drafts-list").addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-act]"); if (!btn) return;
+  const i = +btn.closest(".card").dataset.i, d = S.drafts[i];
+  if (btn.dataset.act === "add") {
+    if (!(await addToQueue(d))) return;
+  }
+  S.drafts.splice(i, 1); renderDrafts();
+});
+
+$("generate-btn").addEventListener("click", async () => {
+  const btn = $("generate-btn"); btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Writing…';
+  try {
+    const { drafts } = await api("/api/drafts", { count: +$("draft-count").value });
+    S.drafts = drafts.concat(S.drafts); renderDrafts();
+  } catch (err) { toast(err.message, true); }
+  finally { btn.disabled = false; btn.textContent = "Generate drafts"; }
+});
+
+$("manual-text").addEventListener("input", (e) => charLabel($("manual-chars"), e.target.value));
+$("manual-add").addEventListener("click", async () => {
+  const text = $("manual-text").value.trim(); if (!text) return toast("Write something first.", true);
+  if (await addToQueue({ text, topic: "manual", format: "manual" })) { $("manual-text").value = ""; charLabel($("manual-chars"), ""); }
+});
+
+// ---------- queue ----------
+async function saveQueue(queue) {
+  const res = await api("/api/queue", { queue });
+  S.queue = res.queue; setUnpublished(res.unpublished); renderQueue();
+}
+
+async function addToQueue(item) {
+  if (!item.text.trim()) { toast("Post is empty.", true); return false; }
+  if (item.text.length > S.max_len) { toast(`Too long: ${item.text.length}/${S.max_len} characters.`, true); return false; }
+  try { await saveQueue([...S.queue, item]); toast("Added to queue"); return true; }
+  catch (err) { toast(err.message, true); return false; }
+}
+
+function renderQueue() {
+  $("queue-count").textContent = S.queue.length;
+  if (!S.queue.length) {
+    $("queue-list").innerHTML = '<div class="empty">The queue is empty, so the bot will write its own posts.<br>Add drafts to choose exactly what goes out.</div>';
+    return;
+  }
+  $("queue-list").innerHTML = S.queue.map((q, i) => `
+    <div class="card" data-i="${i}">
+      <div class="meta"><span class="pos">${i === 0 ? "Next up" : "#" + (i + 1)}</span>
+        <span class="tag">${esc(q.topic)}</span><span>added ${esc(fmtTime(q.added))}</span></div>
+      <textarea class="post-text">${esc(q.text)}</textarea>
+      <div class="card-foot">
+        <span class="chars"></span><div class="spacer"></div>
+        <button class="btn ghost" data-act="up" ${i === 0 ? "disabled" : ""}>↑</button>
+        <button class="btn ghost" data-act="down" ${i === S.queue.length - 1 ? "disabled" : ""}>↓</button>
+        <button class="btn ghost danger" data-act="remove">Remove</button>
+      </div>
+    </div>`).join("");
+  $("queue-list").querySelectorAll(".card").forEach((card) => {
+    const ta = card.querySelector("textarea"), ch = card.querySelector(".chars"), i = +card.dataset.i;
+    charLabel(ch, ta.value);
+    ta.addEventListener("input", () => charLabel(ch, ta.value));
+    ta.addEventListener("change", async () => {
+      const q = S.queue.map((x) => ({ ...x })); q[i].text = ta.value;
+      try { await saveQueue(q); toast("Saved"); } catch (err) { toast(err.message, true); }
+    });
+  });
+}
+
+$("queue-list").addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-act]"); if (!btn) return;
+  const i = +btn.closest(".card").dataset.i, q = S.queue.map((x) => ({ ...x }));
+  if (btn.dataset.act === "remove") q.splice(i, 1);
+  if (btn.dataset.act === "up") [q[i - 1], q[i]] = [q[i], q[i - 1]];
+  if (btn.dataset.act === "down") [q[i + 1], q[i]] = [q[i], q[i + 1]];
+  try { await saveQueue(q); } catch (err) { toast(err.message, true); }
+});
+
+// ---------- history ----------
+function renderHistory() {
+  $("history-list").innerHTML = S.history.length ? S.history.map((h) => `
+    <div class="card">
+      <div class="meta"><span>${esc(fmtTime(h.time))}</span><span class="tag">${esc(h.topic)}</span></div>
+      <div class="history-text">${esc(h.text)}</div>
+    </div>`).join("") : '<div class="empty">Nothing posted yet. Click <b>Refresh from GitHub</b> after the bot\'s first run.</div>';
+}
+
+$("refresh-btn").addEventListener("click", async () => {
+  const btn = $("refresh-btn"); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Refreshing…';
+  try { applyState(await api("/api/refresh", {})); toast("Up to date with GitHub"); }
+  catch (err) { toast(err.message, true); }
+  finally { btn.disabled = false; btn.textContent = "Refresh from GitHub"; }
+});
+
+// ---------- settings ----------
+function renderSettings() {
+  const c = S.config;
+  $("cfg-niche").value = c.niche || ""; $("cfg-audience").value = c.audience || ""; $("cfg-voice").value = c.voice || "";
+  $("cfg-topics").value = (c.topics || []).join("\n"); $("cfg-formats").value = (c.formats || []).join("\n");
+}
+
+$("save-settings").addEventListener("click", async () => {
+  const lines = (id) => $(id).value.split("\n").map((s) => s.trim()).filter(Boolean);
+  const config = { niche: $("cfg-niche").value.trim(), audience: $("cfg-audience").value.trim(), voice: $("cfg-voice").value.trim(),
+    topics: lines("cfg-topics"), formats: lines("cfg-formats") };
+  try { const res = await api("/api/config", config); S.config = config; setUnpublished(res.unpublished); toast("Settings saved"); }
+  catch (err) { toast(err.message, true); }
+});
+
+// ---------- publish ----------
+$("publish-btn").addEventListener("click", async () => {
+  const btn = $("publish-btn"); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Publishing…';
+  try { await api("/api/publish", {}); setUnpublished(false); toast("Published. The bot will use this on its next run."); }
+  catch (err) { toast(err.message, true); }
+  finally { btn.disabled = false; btn.textContent = "Publish to bot"; }
+});
+
+// ---------- boot ----------
+function applyState(st) {
+  S = { ...S, ...st };
+  $("no-key").classList.toggle("hidden", st.has_gemini_key);
+  $("generate-btn").disabled = !st.has_gemini_key;
+  setUnpublished(st.unpublished);
+  renderQueue(); renderHistory(); renderSettings();
+}
+api("/api/state").then(applyState).catch((err) => toast(err.message, true));
+charLabel($("manual-chars"), "");
+</script>
+</body>
+</html>
